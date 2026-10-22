@@ -1,0 +1,504 @@
+{
+  "_readme": "Profil style drawing. scan.py memilih profil dengan skor 'signatures' (layer/block/text/attr). Tambah profil baru dengan menyalin salah satu entri, atau jalankan: python scan.py --discover contoh.dxf",
+  "default_labels": {
+    "revision": "^rev(ision)?\\.?$",
+    "sheet": "^(sheet|sht\\.?)$",
+    "date": "^date$",
+    "scale": "^scale$",
+    "drawn": "^drawn( by)?$",
+    "checked": "^checked( by)?$",
+    "approved": "^appr(oved)?( by)?\\.?$",
+    "drawing_no": "^(dwg\\.?\\s*no\\.?|drawing\\s*no\\.?|dwg\\s*number)\\s*:?\\s*$"
+  },
+  "sheet_types": [
+    [
+      "toc",
+      "TABLE OF CONTENT|DRAWING LIST|DRAWING INDEX"
+    ],
+    [
+      "cover",
+      "COVER|TITLE SHEET"
+    ],
+    [
+      "terminal",
+      "TERMINAL (BLOCK|DESCRIPTION|STRIP|SCHEDULE)"
+    ],
+    [
+      "wiring",
+      "WIRING|SCHEMATIC|CONNECTION DIAGRAM|AC/DC|CT.?VT CIRCUIT|CONTROL CIRCUIT"
+    ],
+    [
+      "layout",
+      "LAYOUT|ARRANGEMENT|FRONT VIEW|GA DRAWING|PANEL DETAIL"
+    ],
+    [
+      "bom",
+      "BILL OF MATERIAL|\\bBOM\\b|DEVICE LIST|EQUIPMENT LIST"
+    ],
+    [
+      "logic",
+      "LOGIC DIAGRAM|INTERLOCK"
+    ],
+    [
+      "sld_protection",
+      "\\bSLD\\b|SINGLE[- ]LINE|ONE[- ]LINE|PROTECTION.*FUNCTION"
+    ],
+    [
+      "general_overview",
+      "GENERAL OVERVIEW|KEY DIAGRAM|OVERALL"
+    ]
+  ],
+  "profiles": [
+    {
+      "name": "iec_ecad_export",
+      "description": "Gaya IEC dari export CAD elektrikal: designation -Q50/-F87L, kode panel =E0X+WR1, block SCH/Master##, layer CONNECTION/SAO, atribut AOID/DOID (contoh: E2010-96572-BD-03-SLD).",
+      "signatures": [
+        {
+          "kind": "layer",
+          "regex": "^(CONNECTION|SAO|text_entry|teks|HIDE|ABU2)$",
+          "weight": 3,
+          "cap": 2
+        },
+        {
+          "kind": "block",
+          "regex": "^(SCH|SCH_TB\\d+.*|Master\\d+|cov|tab|_Dot|LINE_ARROW.*)$",
+          "weight": 3,
+          "cap": 3
+        },
+        {
+          "kind": "attr",
+          "regex": "^(AOID|DOID)$",
+          "weight": 2,
+          "cap": 1
+        },
+        {
+          "kind": "text",
+          "regex": "^-[A-Z]{1,4}\\d{1,4}[A-Z]{0,3}$",
+          "weight": 2,
+          "cap": 5
+        },
+        {
+          "kind": "text",
+          "regex": "^[=+][A-Z0-9]{2,6}(\\+[A-Z0-9]{1,6})?$",
+          "weight": 2,
+          "cap": 2
+        }
+      ],
+      "designation_regex": "^-[A-Z]{1,4}\\d{0,4}[A-Z]{0,3}$",
+      "functional_regex": "^[=+][A-Z0-9]{2,6}(?:[+=][A-Z0-9]{1,6})*$",
+      "device_models": [
+        "MI\\s?COM\\s*P\\d{3}\\w*",
+        "C264",
+        "PM\\d{4}\\w*",
+        "BJ-?\\d+RP",
+        "VDF-?\\d+",
+        "SEPAM\\s*\\w+",
+        "SIPROTEC\\s*\\w*",
+        "7S[A-Z]\\d{2,3}\\w*",
+        "REL\\d{3}\\w*",
+        "VAMP\\s*\\d+\\w*",
+        "MMLG\\w*"
+      ],
+      "model_link_kinds": [
+        "protection_or_fuse",
+        "relay",
+        "device_unit",
+        "meter"
+      ],
+      "protection_functions": "^(21|25|27|32|46|47|49|50|51|50N|51N|50/51|50N/51N|59|60|64|67|67N|74|79|81|86|87[A-Z]{0,2}|BF|CBF)$",
+      "bay_keywords": "BAY|BUS ?COUPLER|FEEDER|TRAFO|TRANSFORMER|BUSBAR|PANEL|KIOSK",
+      "drawing_no_regex": "[A-Z]\\d{3,4}-\\d{4,6}-[A-Z]{2}-\\d{2}(-[A-Z0-9]+)?",
+      "frame_block_regex": "^(SCH|SCH_TB\\d+.*|FRAME.*|TITLE.*)$",
+      "title_attr_keys": {
+        "drawing_no": [
+          "DWG_NO",
+          "DWGNO",
+          "DRAWING_NO",
+          "NO"
+        ],
+        "title": [
+          "TITLE",
+          "TITLE1",
+          "TITLE_LINE1"
+        ],
+        "revision": [
+          "REV",
+          "REVISION"
+        ],
+        "sheet": [
+          "SHEET",
+          "SHT"
+        ],
+        "date": [
+          "DATE"
+        ]
+      },
+      "device_tag_attrs": [
+        "TAG",
+        "TAG1",
+        "DEVICE",
+        "DESIGNATION"
+      ],
+      "device_desc_attrs": [
+        "DESC",
+        "DESC1",
+        "DESCRIPTION"
+      ],
+      "device_model_attrs": [
+        "MODEL",
+        "TYPE",
+        "CAT",
+        "PRODUCT"
+      ]
+    },
+    {
+      "name": "attrib_tags_acade",
+      "description": "Gaya perangkat sebagai block ber-atribut (TAG1/DESC1/MFG/CAT), umum di AutoCAD Electrical / export EPLAN. Teks perangkat ada di atribut, bukan teks lepas.",
+      "signatures": [
+        {
+          "kind": "attr",
+          "regex": "^(TAG1|TAG2|DESC1|DESC2|INST|LOC|WDBLKNM|MFG|CAT|TERM\\d+)$",
+          "weight": 4,
+          "cap": 3
+        },
+        {
+          "kind": "layer",
+          "regex": "^(WIRES?|COMPONENTS?|WNO|XREF|TERMS?|SYMS?)\\b",
+          "weight": 2,
+          "cap": 3
+        },
+        {
+          "kind": "block",
+          "regex": "^(HC|VC|HP|HPB|WD_M|WD_E).*",
+          "weight": 1,
+          "cap": 3
+        }
+      ],
+      "designation_regex": "^(?:[=+][A-Z0-9]+-)?-?[A-Z]{1,4}\\d{1,4}[A-Z]{0,3}$",
+      "functional_regex": "^[=+][A-Z0-9]{1,8}(?:[+=][A-Z0-9]{1,8})*$",
+      "device_models": [
+        "MI\\s?COM\\s*P\\d{3}\\w*",
+        "SEPAM\\s*\\w+",
+        "SIPROTEC\\s*\\w*",
+        "REL\\d{3}\\w*",
+        "7S[A-Z]\\d{2,3}\\w*"
+      ],
+      "model_link_kinds": [
+        "protection_or_fuse",
+        "relay",
+        "device_unit",
+        "meter"
+      ],
+      "protection_functions": "^(21|25|27|32|46|47|49|50|51|50N|51N|50/51|50N/51N|59|60|64|67|67N|74|79|81|86|87[A-Z]{0,2})$",
+      "bay_keywords": "BAY|FEEDER|TRANSFORMER|PANEL",
+      "drawing_no_regex": "[A-Z0-9]{2,}[-_][A-Z0-9_-]{4,}",
+      "frame_block_regex": "^(.*FRAME.*|.*TITLE.*|.*BORDER.*|SCH.*)$",
+      "title_attr_keys": {
+        "drawing_no": [
+          "DWG",
+          "DWGNO",
+          "DWG_NO",
+          "DRAWING_NO",
+          "DWGNUM"
+        ],
+        "title": [
+          "TITLE",
+          "TITLE1",
+          "DWGTITLE"
+        ],
+        "revision": [
+          "REV",
+          "REVISION"
+        ],
+        "sheet": [
+          "SHEET",
+          "SHT",
+          "SHEETNO"
+        ],
+        "date": [
+          "DATE"
+        ]
+      },
+      "device_tag_attrs": [
+        "TAG1",
+        "TAG",
+        "TAG2",
+        "DEVICE"
+      ],
+      "device_desc_attrs": [
+        "DESC1",
+        "DESC2",
+        "DESCRIPTION",
+        "DESC"
+      ],
+      "device_model_attrs": [
+        "CAT",
+        "MFG",
+        "CATALOG",
+        "TYPE",
+        "MODEL"
+      ]
+    },
+    {
+      "name": "ansi_ieee_sld",
+      "description": "Gaya ANSI/IEEE: nomor fungsi proteksi (52, 89, 87T, 50/51), tag peralatan CB-101/DS-1, rasio CT 1200/5.",
+      "signatures": [
+        {
+          "kind": "text",
+          "regex": "^(52|89|86|87[A-Z]?|50/51|50N/51N|51[NGP]?|27|59|81|79)([-_ ]\\d+)?[A-Z]?$",
+          "weight": 3,
+          "cap": 5
+        },
+        {
+          "kind": "text",
+          "regex": "(CT|CTR).{0,8}\\d{2,4}\\s*[:/]\\s*5\\s*A?",
+          "weight": 3,
+          "cap": 2
+        },
+        {
+          "kind": "text",
+          "regex": "^(CB|DS|ES|LA|PT|CT|VT|MOS|GOAB)[-_ ]?\\d{1,3}[A-Z]?$",
+          "weight": 3,
+          "cap": 5
+        },
+        {
+          "kind": "layer",
+          "regex": "^(E-|ELEC|POWER|SLD|PROT)",
+          "weight": 2,
+          "cap": 2
+        }
+      ],
+      "designation_regex": "^(?:(?:52|89|86|87[A-Z]?)[-_ ]?\\d{1,4}[A-Z]?|(?:CB|DS|ES|LA|PT|CT|VT|TR|T|XFMR|BUS|MOS)[-_ ]?\\d{1,3}[A-Z]?)$",
+      "functional_regex": "^(?:BAY|FEEDER|BUS)[-_ ]?\\d{1,3}[A-Z]?$",
+      "device_models": [
+        "SEL[-\\s]?\\d{3}\\w*",
+        "GE\\s?[A-Z]\\d{2}\\w*",
+        "SEPAM\\s*\\w+",
+        "MI\\s?COM\\s*P\\d{3}\\w*",
+        "REL\\d{3}\\w*",
+        "SIPROTEC\\s*\\w*"
+      ],
+      "model_link_kinds": [
+        "protection_or_fuse",
+        "relay",
+        "device_unit",
+        "meter"
+      ],
+      "protection_functions": "^(21|25|27|32|46|47|49|50|51|50N|51N|51G|50/51|50N/51N|59|60|64|67|67N|79|81|86|87[A-Z]{0,2}|BF)$",
+      "bay_keywords": "BAY|FEEDER|TRANSFORMER|BUS|SUBSTATION",
+      "drawing_no_regex": "[A-Z0-9]{2,}[-_][A-Z0-9_-]{3,}",
+      "frame_block_regex": "^(.*FRAME.*|.*TITLE.*|.*BORDER.*)$",
+      "title_attr_keys": {
+        "drawing_no": [
+          "DWG_NO",
+          "DWGNO",
+          "DRAWING_NO"
+        ],
+        "title": [
+          "TITLE",
+          "TITLE1"
+        ],
+        "revision": [
+          "REV",
+          "REVISION"
+        ],
+        "sheet": [
+          "SHEET",
+          "SHT"
+        ],
+        "date": [
+          "DATE"
+        ]
+      },
+      "device_tag_attrs": [
+        "TAG",
+        "TAG1",
+        "DEVICE",
+        "NAME"
+      ],
+      "device_desc_attrs": [
+        "DESC",
+        "DESC1",
+        "DESCRIPTION"
+      ],
+      "device_model_attrs": [
+        "MODEL",
+        "TYPE",
+        "CAT"
+      ]
+    },
+    {
+      "name": "generic",
+      "description": "Cadangan bila tidak ada profil yang cocok. Pola longgar: designation IEC (-Q1) dan tag umum (CB-1).",
+      "signatures": [],
+      "designation_regex": "^(?:-[A-Z]{1,4}\\d{0,4}[A-Z]{0,3}|(?:CB|DS|ES|CT|VT|PT|LA|TR|BUS|RLY|K|Q|F)[-_ ]?\\d{1,4}[A-Z]?)$",
+      "functional_regex": "^[=+][A-Z0-9]{2,8}(?:[+=][A-Z0-9]{1,8})*$",
+      "device_models": [
+        "MI\\s?COM\\s*P\\d{3}\\w*",
+        "SEPAM\\s*\\w+",
+        "SIPROTEC\\s*\\w*",
+        "REL\\d{3}\\w*",
+        "SEL[-\\s]?\\d{3}\\w*"
+      ],
+      "model_link_kinds": [
+        "protection_or_fuse",
+        "relay",
+        "device_unit",
+        "meter"
+      ],
+      "protection_functions": "^(21|25|27|32|46|47|49|50|51|50N|51N|50/51|50N/51N|59|60|64|67|67N|74|79|81|86|87[A-Z]{0,2})$",
+      "bay_keywords": "BAY|FEEDER|TRAFO|TRANSFORMER|BUSBAR|PANEL",
+      "drawing_no_regex": "[A-Z0-9]{2,}[-_][A-Z0-9_-]{4,}",
+      "frame_block_regex": "^(.*FRAME.*|.*TITLE.*|.*BORDER.*|SCH.*)$",
+      "title_attr_keys": {
+        "drawing_no": [
+          "DWG_NO",
+          "DWGNO",
+          "DRAWING_NO",
+          "NO"
+        ],
+        "title": [
+          "TITLE",
+          "TITLE1"
+        ],
+        "revision": [
+          "REV",
+          "REVISION"
+        ],
+        "sheet": [
+          "SHEET",
+          "SHT"
+        ],
+        "date": [
+          "DATE"
+        ]
+      },
+      "device_tag_attrs": [
+        "TAG",
+        "TAG1",
+        "DEVICE",
+        "DESIGNATION",
+        "NAME"
+      ],
+      "device_desc_attrs": [
+        "DESC",
+        "DESC1",
+        "DESCRIPTION"
+      ],
+      "device_model_attrs": [
+        "MODEL",
+        "TYPE",
+        "CAT",
+        "MFG"
+      ]
+    }
+  ],
+  "kind_rules_by_description": [
+    [
+      "circuit_breaker",
+      "\\bCB\\b|CIRCUIT BREAKER"
+    ],
+    [
+      "disconnector",
+      "\\bDS\\b|DISCONN|ISOLATOR"
+    ],
+    [
+      "earthing_switch",
+      "\\bES\\b|EARTH"
+    ],
+    [
+      "surge_arrester",
+      "\\bLA\\b|ARRESTER"
+    ],
+    [
+      "current_transformer",
+      "\\bCT\\b|CURRENT TRANSF"
+    ],
+    [
+      "voltage_transformer",
+      "\\bVT\\b|\\bPT\\b|\\bLVT\\b|VOLTAGE TRANSF"
+    ],
+    [
+      "transformer",
+      "TRAFO|TRANSFORMER|XFMR"
+    ],
+    [
+      "relay",
+      "RELAY|LOCKOUT|TRIP CIRCUIT"
+    ],
+    [
+      "meter",
+      "METER|\\bPM\\d"
+    ]
+  ],
+  "kind_rules_by_designation": [
+    [
+      "circuit_breaker",
+      "^-?(52|CB)[-_ ]?\\d"
+    ],
+    [
+      "disconnector",
+      "^-?(89|DS)[-_ ]?\\d"
+    ],
+    [
+      "earthing_switch",
+      "^-?ES[-_ ]?\\d"
+    ],
+    [
+      "current_transformer",
+      "^-?CT[-_ ]?\\d"
+    ],
+    [
+      "voltage_transformer",
+      "^-?(VT|PT)[-_ ]?\\d"
+    ],
+    [
+      "transformer",
+      "^-?(XFMR|TR)[-_ ]?\\d"
+    ],
+    [
+      "surge_arrester",
+      "^-?LA[-_ ]?\\d"
+    ],
+    [
+      "terminal",
+      "^-?X"
+    ],
+    [
+      "protection_or_fuse",
+      "^-?F"
+    ],
+    [
+      "relay",
+      "^-?K"
+    ],
+    [
+      "meter",
+      "^-?P"
+    ],
+    [
+      "switchgear",
+      "^-?Q"
+    ],
+    [
+      "device_unit",
+      "^-?A"
+    ],
+    [
+      "transformer",
+      "^-?T"
+    ],
+    [
+      "signalling_earthing",
+      "^-?H"
+    ],
+    [
+      "surge_arrester",
+      "^-?LA$"
+    ],
+    [
+      "voltage_transformer",
+      "^-?LVT$"
+    ]
+  ]
+}
